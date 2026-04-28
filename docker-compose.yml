@@ -1,0 +1,50 @@
+version: "3.9"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://127.0.0.1:8000}
+        VITE_WS_BASE_URL: ${VITE_WS_BASE_URL:-ws://127.0.0.1:8000/ws}
+        VITE_AMAP_KEY: ${VITE_AMAP_KEY:-dummy-key}
+        VITE_AMAP_SECURITY_JS_CODE: ${VITE_AMAP_SECURITY_JS_CODE:-dummy-security-code}
+    container_name: transportation-app
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: mysql+pymysql://${MYSQL_USER:-transport_user}:${MYSQL_PASSWORD:-transport_password}@db:3306/${MYSQL_DATABASE:-TRANSIPORT}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-change-me}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost,http://127.0.0.1,http://localhost:80}
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://127.0.0.1:8000}
+      VITE_WS_BASE_URL: ${VITE_WS_BASE_URL:-ws://127.0.0.1:8000/ws}
+    ports:
+      - "80:80"
+      - "8000:8000"
+    restart: unless-stopped
+
+  db:
+    image: mysql:8.4
+    container_name: transportation-db
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-TRANSIPORT}
+      MYSQL_USER: ${MYSQL_USER:-transport_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-transport_password}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u${MYSQL_USER:-transport_user}", "-p${MYSQL_PASSWORD:-transport_password}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
