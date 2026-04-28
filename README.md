@@ -2,6 +2,8 @@
 
 一个前后端分离的交通可视化与路线优化项目。
 
+![Homepage](./docs/images/HomePage.png)
+
 ## 项目结构
 
 - `frontend/`: 基于 React + TypeScript + Vite 的前端应用，包含登录注册、路线优化、交通流量分析等页面。
